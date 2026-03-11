@@ -1,1102 +1,527 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUDO — Modern</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>LUDO</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23111'/%3E%3Crect x='2' y='2' width='28' height='28' rx='4' fill='%23e53935'/%3E%3Crect x='34' y='2' width='28' height='28' rx='4' fill='%2343a047'/%3E%3Crect x='2' y='34' width='28' height='28' rx='4' fill='%231e88e5'/%3E%3Crect x='34' y='34' width='28' height='28' rx='4' fill='%23fdd835'/%3E%3Ccircle cx='32' cy='32' r='9' fill='white'/%3E%3C/svg%3E">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg: #0e0e0e;
-    --surface: #161616;
-    --border: #2a2a2a;
-    --text: #f0ece4;
-    --muted: #666;
-    --red: #e84040;
-    --blue: #3a7bd5;
-    --green: #2ecc71;
-    --yellow: #f5c518;
-    --red-home: #3a1515;
-    --blue-home: #0f1e38;
-    --green-home: #0d2a1a;
-    --yellow-home: #2e2700;
-    --safe: #1e1e1e;
-    --cell: #1a1a1a;
-  }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Mono', monospace;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    overflow-x: hidden;
-  }
-
-  /* SETUP SCREEN */
-  #setup-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
-    max-width: 480px;
-    width: 100%;
-    animation: fadeIn 0.6s ease;
-  }
-
-  .logo {
-    font-family: 'Fraunces', serif;
-    font-size: clamp(3rem, 10vw, 5rem);
-    font-weight: 700;
-    letter-spacing: -2px;
-    line-height: 1;
-  }
-  .logo span { color: var(--muted); font-style: italic; font-weight: 300; }
-
-  .setup-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 28px;
-  }
-
-  .setup-label {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-bottom: 10px;
-  }
-
-  .toggle-group {
-    display: flex;
-    gap: 8px;
-  }
-
-  .toggle-btn {
-    flex: 1;
-    padding: 10px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .toggle-btn:hover { border-color: var(--text); color: var(--text); }
-  .toggle-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
-
-  .player-config { display: flex; flex-direction: column; gap: 10px; }
-
-  .player-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-  }
-
-  .player-dot {
-    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-  }
-
-  .player-name {
-    font-size: 13px;
-    flex: 1;
-  }
-
-  .player-type-toggle {
-    display: flex;
-    gap: 4px;
-  }
-
-  .type-btn {
-    padding: 4px 10px;
-    font-size: 10px;
-    font-family: 'DM Mono', monospace;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 1px;
-  }
-  .type-btn.active { background: var(--border); color: var(--text); }
-  .type-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-
-  .start-btn {
-    width: 100%;
-    padding: 16px;
-    background: var(--text);
-    color: var(--bg);
-    border: none;
-    border-radius: 10px;
-    font-family: 'Fraunces', serif;
-    font-size: 18px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
-    letter-spacing: 1px;
-  }
-  .start-btn:hover { opacity: 0.9; transform: translateY(-1px); }
-  .start-btn:active { transform: translateY(0); }
-
-  /* GAME SCREEN */
-  #game-screen {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    width: 100%;
-    max-width: 900px;
-    animation: fadeIn 0.5s ease;
-  }
-
-  .game-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    max-width: 560px;
-  }
-
-  .game-title {
-    font-family: 'Fraunces', serif;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: -1px;
-  }
-
-  .back-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 6px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .back-btn:hover { border-color: var(--text); color: var(--text); }
-
-  .game-layout {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    justify-content: center;
-    width: 100%;
-  }
-
-  /* BOARD */
-  #board-container {
-    position: relative;
-  }
-
-  #board {
-    display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    grid-template-rows: repeat(15, 1fr);
-    width: min(560px, 92vw);
-    height: min(560px, 92vw);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-    background: var(--bg);
-  }
-
-  .cell {
-    border: 0.5px solid #222;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-  }
-
-  /* Home quadrants */
-  .home-red    { background: var(--red-home); }
-  .home-blue   { background: var(--blue-home); }
-  .home-green  { background: var(--green-home); }
-  .home-yellow { background: var(--yellow-home); }
-
-  /* Safe / path cells */
-  .path-red    { background: rgba(232,64,64,0.12); }
-  .path-blue   { background: rgba(58,123,213,0.12); }
-  .path-green  { background: rgba(46,204,113,0.12); }
-  .path-yellow { background: rgba(245,197,24,0.12); }
-
-  /* Center */
-  .center-cell { background: #111; }
-  .home-col { background: transparent; }
-
-  /* Safe star */
-  .safe-star::after {
-    content: '✦';
-    font-size: 9px;
-    color: #333;
-    position: absolute;
-  }
-
-  /* Colored path arrows */
-  .path-arrow { font-size: 8px; color: #333; position: absolute; pointer-events: none; }
-
-  /* Tokens */
-  .token {
-    width: 60%;
-    height: 60%;
-    border-radius: 50%;
-    position: absolute;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.15s;
-    z-index: 10;
-    border: 2px solid rgba(255,255,255,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 9px;
-    font-weight: 700;
-    color: rgba(255,255,255,0.8);
-    font-family: 'DM Mono', monospace;
-  }
-  .token:hover { transform: scale(1.15); }
-  .token.selectable {
-    cursor: pointer;
-    box-shadow: 0 0 0 2px #fff, 0 0 12px rgba(255,255,255,0.4);
-    animation: pulse 1s infinite alternate;
-  }
-  .token.red    { background: var(--red); }
-  .token.blue   { background: var(--blue); }
-  .token.green  { background: var(--green); }
-  .token.yellow { background: var(--yellow); }
-
-  @keyframes pulse {
-    from { box-shadow: 0 0 0 2px #fff, 0 0 8px rgba(255,255,255,0.3); }
-    to   { box-shadow: 0 0 0 3px #fff, 0 0 18px rgba(255,255,255,0.6); }
-  }
-
-  /* Home token positions */
-  .home-token-slot {
-    position: absolute;
-    width: 36%;
-    height: 36%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* SIDEBAR */
-  .sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    width: 180px;
-  }
-
-  .player-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    transition: border-color 0.2s, background 0.2s;
-    opacity: 0.5;
-  }
-  .player-card.active {
-    opacity: 1;
-    border-color: var(--text);
-    background: #1c1c1c;
-  }
-  .player-card.winner { border-color: gold; background: #1e1b00; opacity: 1; }
-
-  .pc-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .pc-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .pc-name { font-size: 11px; letter-spacing: 1px; }
-  .pc-type { font-size: 9px; color: var(--muted); margin-left: auto; }
-  .pc-tokens { display: flex; gap: 4px; flex-wrap: wrap; }
-  .mini-token {
-    width: 14px; height: 14px; border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.2);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 7px; color: rgba(255,255,255,0.7);
-  }
-  .mini-token.home { opacity: 0.3; }
-  .mini-token.finished { border: 1px solid gold; }
-
-  /* DICE + STATUS */
-  .dice-area {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    width: 180px;
-  }
-
-  #status-text {
-    font-size: 11px;
-    color: var(--muted);
-    text-align: center;
-    min-height: 36px;
-    letter-spacing: 0.5px;
-    line-height: 1.6;
-  }
-
-  #dice {
-    width: 64px;
-    height: 64px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 32px;
-    cursor: pointer;
-    transition: transform 0.1s, border-color 0.2s;
-    user-select: none;
-  }
-  #dice:hover { transform: scale(1.06); border-color: var(--text); }
-  #dice:active { transform: scale(0.96); }
-  #dice.rolling { animation: roll 0.4s ease; pointer-events: none; }
-  #dice.disabled { opacity: 0.4; pointer-events: none; }
-
-  @keyframes roll {
-    0%   { transform: rotate(0deg) scale(1); }
-    25%  { transform: rotate(-15deg) scale(1.1); }
-    50%  { transform: rotate(15deg) scale(0.95); }
-    75%  { transform: rotate(-8deg) scale(1.05); }
-    100% { transform: rotate(0deg) scale(1); }
-  }
-
-  .skip-btn {
-    font-size: 11px;
-    font-family: 'DM Mono', monospace;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 7px 16px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.15s;
-    display: none;
-  }
-  .skip-btn:hover { border-color: var(--text); color: var(--text); }
-  .skip-btn.visible { display: block; }
-
-  /* WIN SCREEN */
-  #win-screen {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    animation: fadeIn 0.4s ease;
-  }
-
-  .win-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 48px 56px;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .win-emoji { font-size: 56px; }
-  .win-title { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700; }
-  .win-sub { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
-
-  .win-btns { display: flex; gap: 10px; margin-top: 10px; }
-  .win-btn {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .win-btn.primary { background: var(--text); color: var(--bg); border: none; }
-  .win-btn.secondary { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-  .win-btn:hover { opacity: 0.85; transform: translateY(-1px); }
-
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* TOAST */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--text);
-    color: var(--bg);
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 500;
-    transition: transform 0.3s ease;
-    z-index: 200;
-    pointer-events: none;
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Mobile layout */
-  @media (max-width: 700px) {
-    .game-layout { flex-direction: column; align-items: center; }
-    .sidebar, .dice-area { flex-direction: row; width: 100%; max-width: 560px; flex-wrap: wrap; gap: 8px; }
-    .player-card { flex: 1; min-width: 80px; padding: 10px; }
-    .dice-area { justify-content: center; }
-  }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;touch-action:manipulation}
+html,body{height:100%;overflow-x:hidden}
+:root{
+  --R:#e53935;--G:#43a047;--B:#1e88e5;--Y:#fdd835;
+  --RL:#ffcdd2;--GL:#c8e6c9;--BL:#bbdefb;--YL:#fff9c4;
+  --tr:.3s cubic-bezier(.4,0,.2,1);
+}
+[data-theme="dark"]{--bg:#111318;--bg2:#1a1d24;--sf:#1e2128;--sf2:#252830;--bd:#2e3240;--tx:#f0eee8;--tx2:#8a8fa8;--sh:rgba(0,0,0,.7);--bb:#2a2d3a}
+[data-theme="light"]{--bg:#f5f0e8;--bg2:#ebe6dc;--sf:#fff;--sf2:#f7f3ec;--bd:#ddd8cc;--tx:#1a1612;--tx2:#706860;--sh:rgba(0,0,0,.18);--bb:#c8c0b0}
+body{background:var(--bg);color:var(--tx);font-family:'Nunito',sans-serif;display:flex;flex-direction:column;min-height:100vh;transition:background var(--tr),color var(--tr)}
+/* TOPBAR */
+#topbar{position:sticky;top:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--sf);border-bottom:1px solid var(--bd);transition:background var(--tr),border-color var(--tr)}
+.t-logo{font-family:'Baloo 2',cursive;font-size:22px;font-weight:800;letter-spacing:2px;background:linear-gradient(135deg,var(--R),var(--Y),var(--G),var(--B));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.t-right{display:flex;gap:8px}
+.ibtn{background:var(--sf2);border:1px solid var(--bd);border-radius:8px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;transition:all .2s}
+.ibtn:hover{border-color:var(--tx);transform:scale(1.06)}
+/* SCREENS */
+.scr{display:none;flex-direction:column;align-items:center;flex:1}
+.scr.on{display:flex}
+/* SETUP */
+#setup{justify-content:center;padding:20px 14px;gap:18px;min-height:calc(100vh - 55px)}
+.hero{text-align:center;animation:fup .7s cubic-bezier(.16,1,.3,1) both}
+.hero h1{font-family:'Baloo 2',cursive;font-size:clamp(3rem,10vw,5.5rem);font-weight:800;letter-spacing:4px;line-height:1;background:linear-gradient(135deg,var(--R) 0%,var(--Y) 33%,var(--G) 66%,var(--B) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{font-size:12px;color:var(--tx2);letter-spacing:3px;text-transform:uppercase;margin-top:4px}
+.sbox{background:var(--sf);border:1px solid var(--bd);border-radius:18px;padding:18px;width:100%;max-width:430px;animation:fup .7s .1s cubic-bezier(.16,1,.3,1) both;transition:background var(--tr),border-color var(--tr)}
+.slbl{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--tx2);margin-bottom:8px}
+.pr{display:flex;gap:7px;margin-bottom:14px}
+.pill{flex:1;padding:9px;text-align:center;background:var(--sf2);border:1.5px solid var(--bd);border-radius:50px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;transition:all .2s}
+.pill:hover{border-color:var(--tx);color:var(--tx)}
+.pill.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.prows{display:flex;flex-direction:column;gap:7px}
+.prow{display:grid;grid-template-columns:14px 1fr auto;align-items:center;gap:10px;padding:8px 12px;background:var(--sf2);border:1.5px solid var(--bd);border-radius:10px;animation:sli .3s ease both}
+@keyframes sli{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:translateX(0)}}
+.pdot{width:10px;height:10px;border-radius:50%}
+.pinp{background:transparent;border:none;outline:none;color:var(--tx);font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;width:100%}
+.pinp::placeholder{color:var(--tx2);font-weight:600}
+.tpills{display:flex;gap:4px}
+.tpill{padding:3px 10px;font-size:10px;font-weight:700;letter-spacing:1px;background:transparent;border:1.5px solid var(--bd);border-radius:50px;color:var(--tx2);cursor:pointer;transition:all .15s}
+.tpill.on{background:var(--bd);color:var(--tx);border-color:transparent}
+.sbtn{width:100%;max-width:430px;padding:15px;background:linear-gradient(135deg,var(--R),#e91e63);color:#fff;border:none;border-radius:14px;font-family:'Baloo 2',cursive;font-size:20px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .2s;box-shadow:0 8px 24px rgba(229,57,53,.4);animation:fup .7s .2s cubic-bezier(.16,1,.3,1) both}
+.sbtn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(229,57,53,.5)}
+.sbtn:active{transform:translateY(0)}
+@keyframes fup{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+/* GAME */
+#game{padding:0;flex-direction:column;align-items:stretch;min-height:calc(100vh - 55px)}
+.gtop{display:flex;align-items:center;justify-content:center;padding:6px 12px;flex-shrink:0}
+#sbar{font-size:13px;font-weight:700;color:var(--tx);text-align:center;min-height:20px}
+.gmain{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:6px 6px 0;gap:8px;overflow-y:auto}
+/* Player cards */
+.pcards{display:flex;gap:5px;width:100%;max-width:600px;flex-wrap:wrap;justify-content:center}
+.pcard{flex:1;min-width:82px;background:var(--sf);border:2px solid var(--bd);border-radius:10px;padding:7px 9px;transition:all .3s;opacity:.5;position:relative;overflow:hidden}
+.pcard::after{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background .3s}
+.pcard.ac{opacity:1;border-color:var(--aclr,#fff);transform:translateY(-2px);box-shadow:0 6px 18px var(--sh)}
+.pcard.ac::after{background:var(--aclr,#fff)}
+.pcard.wn{opacity:1;border-color:gold}
+.pch{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.pcdot{width:8px;height:8px;border-radius:50%}
+.pcnm{font-size:11px;font-weight:700;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcai{font-size:9px;letter-spacing:1px;color:var(--tx2);background:var(--sf2);padding:1px 6px;border-radius:50px}
+.pctoks{display:flex;gap:3px}
+.ptk{width:12px;height:12px;border-radius:50%;border:1.5px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:800;color:rgba(255,255,255,.9);transition:all .3s}
+.ptk.hm{opacity:.2}.ptk.dn{border-color:gold;box-shadow:0 0 5px gold}
+/* BOARD */
+#bwrap{position:relative;width:min(450px,calc(100vw - 12px));height:min(450px,calc(100vw - 12px));flex-shrink:0}
+#board{width:100%;height:100%;display:grid;grid-template-columns:repeat(15,1fr);grid-template-rows:repeat(15,1fr);border-radius:10px;overflow:hidden;border:3px solid var(--bb);box-shadow:0 16px 48px var(--sh);background:#fff;transition:border-color var(--tr)}
+.c{position:relative;display:flex;align-items:center;justify-content:center;border:.5px solid rgba(0,0,0,.1);overflow:visible}
+.hR{background:var(--R)}.hG{background:var(--G)}.hB{background:var(--B)}.hY{background:var(--Y)}
+.path{background:#fff}
+.cR{background:var(--R)}.cG{background:var(--G)}.cB{background:var(--B)}.cY{background:var(--Y)}
+.hsR{background:var(--RL)}.hsG{background:var(--GL)}.hsB{background:var(--BL)}.hsY{background:var(--YL)}
+.safe::before{content:'☆';position:absolute;font-size:9px;color:rgba(0,0,0,.22);z-index:1;pointer-events:none}
+/* TOKENS */
+.tok{position:absolute;width:54%;height:54%;border-radius:50%;z-index:20;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:800;color:rgba(255,255,255,.95);will-change:transform;transition:transform .12s,box-shadow .12s;border:2px solid rgba(255,255,255,.45)}
+.tok::before{content:'';position:absolute;top:10%;left:17%;width:38%;height:28%;background:rgba(255,255,255,.42);border-radius:50%;pointer-events:none}
+.tok.red{background:radial-gradient(circle at 36% 32%,#ff6b6b,#c62828);box-shadow:0 3px 10px rgba(198,40,40,.6),inset 0 -2px 0 rgba(0,0,0,.25)}
+.tok.green{background:radial-gradient(circle at 36% 32%,#66bb6a,#1b5e20);box-shadow:0 3px 10px rgba(27,94,32,.6),inset 0 -2px 0 rgba(0,0,0,.25)}
+.tok.blue{background:radial-gradient(circle at 36% 32%,#64b5f6,#0d47a1);box-shadow:0 3px 10px rgba(13,71,161,.6),inset 0 -2px 0 rgba(0,0,0,.25)}
+.tok.yellow{background:radial-gradient(circle at 36% 32%,#fff176,#f57f17);box-shadow:0 3px 10px rgba(245,127,23,.6),inset 0 -2px 0 rgba(0,0,0,.25)}
+.tok:hover:not(.sel){transform:scale(1.1) translateY(-2px)}
+.tok.sel{animation:tpulse .7s ease infinite alternate;cursor:pointer}
+@keyframes tpulse{from{transform:scale(1);box-shadow:0 3px 10px rgba(255,255,255,.2)}to{transform:scale(1.28) translateY(-4px);box-shadow:0 9px 26px rgba(255,255,255,.85)}}
+.tok.am{animation:tbounce .42s cubic-bezier(.16,1,.3,1) both;z-index:30}
+@keyframes tbounce{0%{transform:scale(1) translateY(0)}30%{transform:scale(1.45) translateY(-11px)}62%{transform:scale(1.1) translateY(-3px)}82%{transform:scale(.96) translateY(0)}100%{transform:scale(1) translateY(0)}}
+.tok.ae{animation:tenter .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes tenter{0%{transform:scale(0) rotate(-200deg);opacity:0}60%{transform:scale(1.3) rotate(15deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+.tok.ac2{animation:tcap .5s ease both}
+@keyframes tcap{0%{transform:scale(1);filter:brightness(1)}35%{transform:scale(1.6);filter:brightness(2) saturate(3)}70%{transform:scale(.6) translateY(4px);opacity:.4}100%{transform:scale(1);opacity:1}}
+.tok.aw{animation:twin .75s cubic-bezier(.16,1,.3,1) both}
+@keyframes twin{0%{transform:scale(1)}30%{transform:scale(1.9) rotate(22deg);filter:brightness(1.8)}62%{transform:scale(.88) rotate(-11deg)}100%{transform:scale(1) rotate(0)}}
+/* FIXED DICE */
+#dpanel{position:sticky;bottom:0;z-index:60;background:var(--sf);border-top:1px solid var(--bd);padding:12px 16px;display:flex;align-items:center;justify-content:center;gap:16px;flex-shrink:0;box-shadow:0 -8px 24px var(--sh);transition:background var(--tr),border-color var(--tr)}
+#d3w{perspective:500px}
+#dice{width:72px;height:72px;background:var(--sf2);border:2px solid var(--bd);border-radius:14px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);padding:8px;gap:4px;cursor:pointer;user-select:none;transition:border-color .2s,background var(--tr);box-shadow:0 6px 20px var(--sh),inset 0 1px 0 rgba(255,255,255,.08),0 2px 0 rgba(0,0,0,.4);position:relative}
+#dice::before{content:'';position:absolute;inset:0;border-radius:12px;background:linear-gradient(145deg,rgba(255,255,255,.09),transparent 55%);pointer-events:none}
+#dice:hover:not(.dis){border-color:var(--tx);transform:translateY(-2px) scale(1.04)}
+#dice:active:not(.dis){transform:scale(.97)}
+#dice.roll{animation:droll .6s cubic-bezier(.36,.07,.19,.97) both;pointer-events:none}
+@keyframes droll{0%{transform:rotateX(0) rotateY(0) rotateZ(0) scale(1)}15%{transform:rotateX(200deg) rotateY(80deg) rotateZ(40deg) scale(1.22)}35%{transform:rotateX(80deg) rotateY(260deg) rotateZ(140deg) scale(.83)}55%{transform:rotateX(280deg) rotateY(160deg) rotateZ(260deg) scale(1.17)}75%{transform:rotateX(380deg) rotateY(380deg) rotateZ(360deg) scale(.91)}100%{transform:rotateX(540deg) rotateY(540deg) rotateZ(540deg) scale(1)}}
+#dice.dis{opacity:.3;pointer-events:none}
+.dd{width:100%;aspect-ratio:1;border-radius:50%;background:var(--tx);transition:background var(--tr),opacity .15s}
+.dd.off{opacity:0}
+#dnum{font-family:'Baloo 2',cursive;font-size:40px;font-weight:800;color:var(--tx);min-width:50px;text-align:center;opacity:0;transform:scale(.5) translateY(8px);transition:all .35s cubic-bezier(.16,1,.3,1)}
+#dnum.vis{opacity:1;transform:scale(1) translateY(0)}
+#dnum.pop{animation:npop .5s cubic-bezier(.16,1,.3,1)}
+@keyframes npop{0%{transform:scale(.3) translateY(14px);opacity:0}55%{transform:scale(1.42) translateY(-5px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+#skipbtn{display:none;padding:9px 18px;background:var(--sf2);border:1.5px solid var(--bd);border-radius:50px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--tx2);cursor:pointer;transition:all .15s}
+#skipbtn.vis{display:block}
+#skipbtn:hover{border-color:var(--tx);color:var(--tx);transform:translateY(-1px)}
+/* Ripple */
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.3);transform:scale(0);animation:ripout .65s ease;pointer-events:none;z-index:15;width:50%;height:50%;left:25%;top:25%}
+@keyframes ripout{to{transform:scale(5);opacity:0}}
+/* Confetti */
+.cf{position:fixed;pointer-events:none;z-index:999;animation:cfall linear forwards}
+@keyframes cfall{0%{transform:translateY(-20px) rotate(0) scale(1);opacity:1}100%{transform:translateY(110vh) rotate(760deg) scale(.8);opacity:0}}
+/* Win overlay */
+#wo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(10px);align-items:center;justify-content:center;z-index:500}
+#wo.on{display:flex;animation:fin .4s ease both}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+.wbox{background:var(--sf);border:1px solid var(--bd);border-radius:22px;padding:40px 48px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;max-width:320px;width:90%;animation:win .65s cubic-bezier(.16,1,.3,1) both}
+@keyframes win{from{transform:scale(.75) translateY(28px);opacity:0}to{transform:scale(1);opacity:1}}
+.wt{font-size:56px;animation:tsp .8s .3s cubic-bezier(.16,1,.3,1) both}
+@keyframes tsp{from{transform:scale(0) rotate(-180deg)}to{transform:scale(1) rotate(0)}}
+.wh{font-family:'Baloo 2',cursive;font-size:32px;font-weight:800;letter-spacing:-1px}
+.ws{font-size:13px;color:var(--tx2)}
+.wbtns{display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+.wb{padding:12px 22px;border-radius:10px;font-family:'Nunito',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s}
+.wb.p{background:linear-gradient(135deg,var(--R),#e91e63);color:#fff;border:none;box-shadow:0 6px 16px rgba(229,57,53,.4)}
+.wb.s{background:transparent;border:1.5px solid var(--bd);color:var(--tx2)}
+.wb:hover{transform:translateY(-2px);opacity:.9}
+/* Toast */
+#toast{position:fixed;bottom:102px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--sf);border:1.5px solid var(--bd);color:var(--tx);padding:10px 22px;border-radius:50px;font-size:13px;font-weight:700;z-index:400;pointer-events:none;white-space:nowrap;box-shadow:0 8px 24px var(--sh);transition:transform .35s cubic-bezier(.16,1,.3,1)}
+#toast.on{transform:translateX(-50%) translateY(0)}
+@media(max-width:380px){.wbox{padding:28px 20px}.wh{font-size:26px}}
+@media(min-width:700px){#bwrap{width:min(520px,calc(100vw - 32px));height:min(520px,calc(100vw - 32px))}}
+@media(min-width:960px){
+  .gmain{flex-direction:row;align-items:flex-start;justify-content:center;padding:16px;gap:16px}
+  .pcards{flex-direction:column;width:170px;flex-wrap:nowrap}
+  #game{padding-bottom:96px}
+  #dpanel{position:fixed;bottom:0;left:0;right:0}
+  #bwrap{width:min(560px,58vw);height:min(560px,58vw)}
+}
 </style>
 </head>
 <body>
-
-<!-- SETUP -->
-<div id="setup-screen">
-  <div class="logo">LUDO<span>.</span></div>
-
-  <div class="setup-card">
-    <div>
-      <div class="setup-label">Number of Players</div>
-      <div class="toggle-group">
-        <button class="toggle-btn" data-players="2" onclick="setPlayers(2)">2 Players</button>
-        <button class="toggle-btn active" data-players="4" onclick="setPlayers(4)">4 Players</button>
-      </div>
-    </div>
-
-    <div>
-      <div class="setup-label">Player Setup</div>
-      <div class="player-config" id="player-config"></div>
-    </div>
-
-    <button class="start-btn" onclick="startGame()">Start Game →</button>
+<div id="topbar">
+  <div class="t-logo">LUDO</div>
+  <div class="t-right">
+    <div class="ibtn" id="thbtn" onclick="toggleTheme()">🌙</div>
+    <div class="ibtn" onclick="goHome()">🏠</div>
   </div>
 </div>
 
-<!-- GAME -->
-<div id="game-screen">
-  <div class="game-header">
-    <div class="game-title">LUDO<span style="color:var(--muted);font-style:italic;font-weight:300">.</span></div>
-    <button class="back-btn" onclick="goHome()">← Menu</button>
+<div class="scr on" id="setup">
+  <div class="hero"><h1>LUDO</h1><p>Classic Board Game</p></div>
+  <div class="sbox">
+    <div class="slbl">Number of Players</div>
+    <div class="pr">
+      <button class="pill" data-n="2" onclick="setN(2)">2 Players</button>
+      <button class="pill on" data-n="4" onclick="setN(4)">4 Players</button>
+    </div>
+    <div class="slbl">AI Speed</div>
+    <div class="pr">
+      <button class="pill on" data-sp="normal" onclick="setSp('normal')">Normal</button>
+      <button class="pill" data-sp="fast" onclick="setSp('fast')">Fast</button>
+    </div>
+    <div class="slbl">Players</div>
+    <div class="prows" id="prows"></div>
   </div>
+  <button class="sbtn" onclick="startGame()">🎲 Start Game</button>
+</div>
 
-  <div class="game-layout">
-    <div id="board-container">
-      <div id="board"></div>
-    </div>
-
-    <div style="display:flex;flex-direction:column;gap:14px;">
-      <div class="sidebar" id="sidebar"></div>
-
-      <div class="dice-area">
-        <div id="status-text">Roll to start</div>
-        <div id="dice" onclick="rollDice()">⚀</div>
-        <button class="skip-btn" id="skip-btn" onclick="skipTurn()">Skip Turn</button>
-      </div>
-    </div>
+<div class="scr" id="game">
+  <div class="gtop"><div id="sbar">Roll the dice!</div></div>
+  <div class="gmain">
+    <div class="pcards" id="pcards"></div>
+    <div id="bwrap"><div id="board"></div></div>
+  </div>
+  <div id="dpanel">
+    <button id="skipbtn" onclick="skipTurn()">Skip</button>
+    <div id="d3w"><div id="dice" onclick="humanRoll()">
+      <div class="dd off"></div><div class="dd off"></div><div class="dd off"></div>
+      <div class="dd off"></div><div class="dd off"></div><div class="dd off"></div>
+      <div class="dd off"></div><div class="dd off"></div><div class="dd off"></div>
+    </div></div>
+    <div id="dnum">–</div>
   </div>
 </div>
 
-<!-- WIN -->
-<div id="win-screen">
-  <div class="win-card">
-    <div class="win-emoji">🏆</div>
-    <div class="win-title" id="win-title">Player Wins!</div>
-    <div class="win-sub" id="win-sub">Game Over</div>
-    <div class="win-btns">
-      <button class="win-btn primary" onclick="startGame()">Play Again</button>
-      <button class="win-btn secondary" onclick="goHome()">Menu</button>
+<div id="wo">
+  <div class="wbox">
+    <div class="wt">🏆</div>
+    <div class="wh" id="wh">Wins!</div>
+    <div class="ws" id="ws">Congratulations!</div>
+    <div class="wbtns">
+      <button class="wb p" onclick="startGame()">Play Again</button>
+      <button class="wb s" onclick="goHome()">Menu</button>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-// ─── CONSTANTS ───────────────────────────────────────────────────────────────
-const COLORS = ['red','blue','green','yellow'];
-const COLOR_NAMES = { red:'Red', blue:'Blue', green:'Green', yellow:'Yellow' };
-const DICE_FACES = ['⚀','⚁','⚂','⚃','⚄','⚅'];
-const TOKENS_PER_PLAYER = 4;
+const COLS=['red','green','blue','yellow'];
+const CNAMES={red:'Red',green:'Green',blue:'Blue',yellow:'Yellow'};
+const CHEX={red:'#e53935',green:'#43a047',blue:'#1e88e5',yellow:'#fdd835'};
+const DDOTS={1:[[1,1]],2:[[0,0],[2,2]],3:[[0,0],[1,1],[2,2]],4:[[0,0],[0,2],[2,0],[2,2]],5:[[0,0],[0,2],[1,1],[2,0],[2,2]],6:[[0,0],[0,2],[1,0],[1,2],[2,0],[2,2]]};
+const SAFE=new Set(['6-1','1-8','8-13','13-6','0-7','7-14','14-7','7-0','2-6','6-12','12-8','8-2']);
+const HBASES={red:[[1,1],[1,4],[4,1],[4,4]],green:[[1,9],[1,12],[4,9],[4,12]],blue:[[9,9],[9,12],[12,9],[12,12]],yellow:[[9,1],[9,4],[12,1],[12,4]]};
 
-// Board path: 52 cells (0-51), each cell is [row,col] in 15x15 grid
-// Starting positions per color (index 0 of their path)
-// Home column entrance indices per color
-
-// The 15x15 board layout:
-// Rows/cols 0-5 = top-left (green home)
-// Rows/cols 6 = path row/col
-// Center = rows 6-8, cols 6-8
-
-// Full path arrays [row,col] for each color (52 steps)
-function buildPaths() {
-  // Standard Ludo path starting positions:
-  // Red starts at row=6,col=1 going right → down → left → up → into center
-  const redPath = [
-    [6,1],[6,2],[6,3],[6,4],[6,5],
-    [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-    [0,7],
-    [0,8],[1,8],[2,8],[3,8],[4,8],[5,8],
-    [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
-    [7,14],
-    [8,14],[8,13],[8,12],[8,11],[8,10],[8,9],
-    [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
-    [14,7],
-    [14,6],[13,6],[12,6],[11,6],[10,6],[9,6],
-    [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-    [7,0]
-  ];
-  // Home column for red: col 7, rows 1-6
-  const redHome = [[6,7],[5,7],[4,7],[3,7],[2,7],[1,7]];
-
-  const bluePath = [
-    [1,8],[2,8],[3,8],[4,8],[5,8],
-    [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
-    [7,14],
-    [8,14],[8,13],[8,12],[8,11],[8,10],[8,9],
-    [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
-    [14,7],
-    [14,6],[13,6],[12,6],[11,6],[10,6],[9,6],
-    [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-    [7,0],
-    [6,0],[6,1],[6,2],[6,3],[6,4],[6,5],
-    [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-    [0,7]
-  ];
-  const blueHome = [[8,7],[9,7],[10,7],[11,7],[12,7],[13,7]];
-
-  const greenPath = [
-    [8,13],[8,12],[8,11],[8,10],[8,9],
-    [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
-    [14,7],
-    [14,6],[13,6],[12,6],[11,6],[10,6],[9,6],
-    [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-    [7,0],
-    [6,0],[6,1],[6,2],[6,3],[6,4],[6,5],
-    [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-    [0,7],
-    [0,8],[1,8],[2,8],[3,8],[4,8],[5,8],
-    [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
-    [7,14]
-  ];
-  const greenHome = [[7,8],[7,9],[7,10],[7,11],[7,12],[7,13]];
-
-  const yellowPath = [
-    [13,6],[12,6],[11,6],[10,6],[9,6],
-    [8,5],[8,4],[8,3],[8,2],[8,1],[8,0],
-    [7,0],
-    [6,0],[6,1],[6,2],[6,3],[6,4],[6,5],
-    [5,6],[4,6],[3,6],[2,6],[1,6],[0,6],
-    [0,7],
-    [0,8],[1,8],[2,8],[3,8],[4,8],[5,8],
-    [6,9],[6,10],[6,11],[6,12],[6,13],[6,14],
-    [7,14],
-    [8,14],[8,13],[8,12],[8,11],[8,10],[8,9],
-    [9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
-    [14,7]
-  ];
-  const yellowHome = [[7,6],[7,5],[7,4],[7,3],[7,2],[7,1]];
-
-  return {
-    red:    { path: redPath,    homeCol: redHome,    start: 0, homeBase: [[1,1],[1,4],[4,1],[4,4]], startIdx: 0 },
-    blue:   { path: bluePath,   homeCol: blueHome,   start: 0, homeBase: [[1,9],[1,12],[4,9],[4,12]], startIdx: 0 },
-    green:  { path: greenPath,  homeCol: greenHome,  start: 0, homeBase: [[9,9],[9,12],[12,9],[12,12]], startIdx: 0 },
-    yellow: { path: yellowPath, homeCol: yellowHome, start: 0, homeBase: [[9,1],[9,4],[12,1],[12,4]], startIdx: 0 },
-  };
+function buildPaths(){
+  const outer=[[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7],[0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,9],[6,10],[6,11],[6,12],[6,13],[6,14],[7,14],[8,14],[8,13],[8,12],[8,11],[8,10],[8,9],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],[14,7],[14,6],[13,6],[12,6],[11,6],[10,6],[9,6],[8,5],[8,4],[8,3],[8,2],[8,1],[8,0],[7,0],[6,0]];
+  const hs={red:[[6,7],[5,7],[4,7],[3,7],[2,7],[1,7]],green:[[7,8],[7,9],[7,10],[7,11],[7,12],[7,13]],blue:[[8,7],[9,7],[10,7],[11,7],[12,7],[13,7]],yellow:[[7,6],[7,5],[7,4],[7,3],[7,2],[7,1]]};
+  const offs={red:0,green:13,blue:26,yellow:39};
+  const p={};
+  COLS.forEach(c=>{const o=offs[c];p[c]=[...outer.slice(o),...outer.slice(0,o),...hs[c]];});
+  return p;
 }
 
-// Safe squares (global path indices where captures can't happen)
-const SAFE_CELLS = new Set([
-  // Start cells and a few others
-]);
+let G={},sN=4,sSp='normal';
+let sNames={red:'Red',green:'Green',blue:'Blue',yellow:'Yellow'};
+let sTypes={red:'human',green:'ai',blue:'ai',yellow:'ai'};
 
-// ─── STATE ───────────────────────────────────────────────────────────────────
-let G = {
-  numPlayers: 4,
-  playerTypes: { red:'human', blue:'ai', green:'ai', yellow:'ai' },
-  players: [],
-  tokens: {},   // { red: [{pos:-1,pathIdx:-1}, ...], ... }
-  currentPlayer: 0,
-  diceValue: 0,
-  phase: 'roll', // roll | move | waiting
-  paths: {},
-  rankOrder: [],
-  finished: new Set(),
-};
-
-// ─── SETUP UI ─────────────────────────────────────────────────────────────────
-let setupPlayers = 4;
-let setupTypes = { red:'human', blue:'ai', green:'ai', yellow:'ai' };
-
-function setPlayers(n) {
-  setupPlayers = n;
-  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', +b.dataset.players === n));
-  renderPlayerConfig();
-}
-
-function renderPlayerConfig() {
-  const container = document.getElementById('player-config');
-  const colors = setupPlayers === 2 ? ['red','blue'] : COLORS;
-  container.innerHTML = colors.map(c => `
-    <div class="player-row">
-      <div class="player-dot" style="background:var(--${c})"></div>
-      <div class="player-name">${COLOR_NAMES[c]}</div>
-      <div class="player-type-toggle">
-        <button class="type-btn ${setupTypes[c]==='human'?'active':''}"
-          onclick="setType('${c}','human')">YOU</button>
-        <button class="type-btn ${setupTypes[c]==='ai'?'active':''}"
-          onclick="setType('${c}','ai')">AI</button>
+function setN(n){sN=n;document.querySelectorAll('.pill[data-n]').forEach(b=>b.classList.toggle('on',+b.dataset.n===n));renderRows();}
+function setSp(s){sSp=s;document.querySelectorAll('.pill[data-sp]').forEach(b=>b.classList.toggle('on',b.dataset.sp===s));}
+function setType(c,t){sTypes[c]=t;renderRows();}
+function renderRows(){
+  const cols=sN===2?['red','blue']:COLS;
+  document.getElementById('prows').innerHTML=cols.map((c,i)=>`
+    <div class="prow" style="animation-delay:${i*.06}s">
+      <div class="pdot" style="background:${CHEX[c]};box-shadow:0 0 6px ${CHEX[c]}"></div>
+      <input class="pinp" id="ni-${c}" type="text" placeholder="${CNAMES[c]}"
+        value="${sNames[c]!==CNAMES[c]?sNames[c]:''}" maxlength="10"
+        oninput="sNames['${c}']=this.value||'${CNAMES[c]}'">
+      <div class="tpills">
+        <button class="tpill ${sTypes[c]==='human'?'on':''}" onclick="setType('${c}','human')">YOU</button>
+        <button class="tpill ${sTypes[c]==='ai'?'on':''}" onclick="setType('${c}','ai')">AI</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
-function setType(color, type) {
-  setupTypes[color] = type;
-  renderPlayerConfig();
+function startGame(){
+  const cols=sN===2?['red','blue']:COLS;
+  G={players:cols,types:Object.fromEntries(cols.map(c=>[c,sTypes[c]])),names:Object.fromEntries(cols.map(c=>[c,sNames[c]||CNAMES[c]])),tokens:Object.fromEntries(cols.map(c=>[c,[0,1,2,3].map(i=>({id:i,pi:-1}))])),paths:buildPaths(),ci:0,dv:0,phase:'roll',finished:new Set(),rank:[],sp:sSp};
+  showScr('game');buildBoard();renderCards();renderTokens();drawDice(6);updateStatus();
+  document.getElementById('wo').classList.remove('on');
+  document.getElementById('dnum').classList.remove('vis','pop');
+  document.getElementById('dnum').textContent='–';
+  if(isAI())setTimeout(aiTurn,800);
 }
+function goHome(){document.getElementById('wo').classList.remove('on');showScr('setup');}
+function showScr(id){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');}
 
-// ─── GAME INIT ─────────────────────────────────────────────────────────────────
-function startGame() {
-  const colors = setupPlayers === 2 ? ['red','blue'] : COLORS;
-  G.numPlayers = setupPlayers;
-  G.players = colors;
-  G.playerTypes = {};
-  colors.forEach(c => G.playerTypes[c] = setupTypes[c]);
-  G.paths = buildPaths();
-  G.tokens = {};
-  G.rankOrder = [];
-  G.finished = new Set();
-  G.currentPlayer = 0;
-  G.diceValue = 0;
-  G.phase = 'roll';
-
-  colors.forEach(c => {
-    G.tokens[c] = Array.from({length: TOKENS_PER_PLAYER}, (_, i) => ({
-      id: i,
-      pos: -1,       // -1 = home base, 0-51 = on board, 56 = finished
-      pathIdx: -1,   // index in color's path array
-    }));
-  });
-
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('game-screen').style.display = 'flex';
-  document.getElementById('win-screen').style.display = 'none';
-
-  buildBoard();
-  renderSidebar();
-  renderTokens();
-  updateStatus();
-
-  if (isCurrentAI()) setTimeout(aiTurn, 800);
-}
-
-function goHome() {
-  document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('game-screen').style.display = 'none';
-  document.getElementById('win-screen').style.display = 'none';
-}
-
-// ─── BOARD BUILD ──────────────────────────────────────────────────────────────
-function buildBoard() {
-  const board = document.getElementById('board');
-  board.innerHTML = '';
-
-  // Create 15x15 cells
-  const cells = [];
-  for (let r = 0; r < 15; r++) {
-    for (let c = 0; c < 15; c++) {
-      const cell = document.createElement('div');
-      cell.className = 'cell';
-      cell.dataset.r = r;
-      cell.dataset.c = c;
-      cell.id = `cell-${r}-${c}`;
-      classifyCell(cell, r, c);
-      board.appendChild(cell);
-      cells.push(cell);
-    }
+// BOARD
+function buildBoard(){
+  const b=document.getElementById('board');b.innerHTML='';
+  // Remove old home boxes
+  document.querySelectorAll('.hbox').forEach(e=>e.remove());
+  for(let r=0;r<15;r++)for(let c=0;c<15;c++){
+    const el=document.createElement('div');el.className='c';el.id=`B${r}_${c}`;
+    styleCell(el,r,c);b.appendChild(el);
   }
+  setTimeout(drawHomeBoxes,0);
 }
 
-function classifyCell(cell, r, c) {
-  // Home quadrants (6x6 corners)
-  if (r <= 5 && c <= 5) { cell.classList.add('home-green'); return; }
-  if (r <= 5 && c >= 9) { cell.classList.add('home-blue'); return; }
-  if (r >= 9 && c <= 5) { cell.classList.add('home-yellow'); return; }
-  if (r >= 9 && c >= 9) { cell.classList.add('home-green'); 
-    cell.classList.remove('home-green'); cell.classList.add('home-red'); return; }
-
-  // Center triangle (rows 6-8, cols 6-8)
-  if (r >= 6 && r <= 8 && c >= 6 && c <= 8) {
-    if (r === 7 && c === 7) { cell.classList.add('center-cell'); return; }
-    cell.classList.add('center-cell'); return;
-  }
-
-  // Colored home columns
-  if (c === 7 && r >= 1 && r <= 5) { cell.classList.add('path-red'); return; }
-  if (r === 7 && c >= 9 && c <= 13) { cell.classList.add('path-green'); return; }
-  if (c === 7 && r >= 9 && r <= 13) { cell.classList.add('path-blue'); return; }
-  if (r === 7 && c >= 1 && c <= 5) { cell.classList.add('path-yellow'); return; }
-
-  // Path cells
-  cell.style.background = 'var(--cell)';
+function styleCell(el,r,c){
+  // Home quadrants
+  if(r<=5&&c<=5){el.classList.add('hR');return;}
+  if(r<=5&&c>=9){el.classList.add('hG');return;}
+  if(r>=9&&c>=9){el.classList.add('hB');return;}
+  if(r>=9&&c<=5){el.classList.add('hY');return;}
+  // Center 3x3
+  if(r>=6&&r<=8&&c>=6&&c<=8){styleCenter(el,r,c);return;}
+  // Home stretches
+  if(c===7&&r>=1&&r<=5){el.classList.add('hsR');return;}
+  if(r===7&&c>=9&&c<=13){el.classList.add('hsG');return;}
+  if(c===7&&r>=9&&r<=13){el.classList.add('hsB');return;}
+  if(r===7&&c>=1&&c<=5){el.classList.add('hsY');return;}
+  // Start cells
+  const k=`${r}-${c}`;
+  if(k==='6-1'){el.classList.add('cR');}
+  else if(k==='1-8'){el.classList.add('cG');}
+  else if(k==='8-13'){el.classList.add('cB');}
+  else if(k==='13-6'){el.classList.add('cY');}
+  else{el.classList.add('path');}
+  if(SAFE.has(k))el.classList.add('safe');
 }
 
-// ─── RENDER ──────────────────────────────────────────────────────────────────
-function renderSidebar() {
-  const sb = document.getElementById('sidebar');
-  sb.innerHTML = G.players.map(c => `
-    <div class="player-card ${G.players[G.currentPlayer]===c?'active':''} ${G.finished.has(c)?'winner':''}" id="card-${c}">
-      <div class="pc-header">
-        <div class="pc-dot" style="background:var(--${c})"></div>
-        <div class="pc-name">${COLOR_NAMES[c]}</div>
-        <div class="pc-type">${G.playerTypes[c]==='ai'?'AI':'YOU'}</div>
-      </div>
-      <div class="pc-tokens" id="pc-tokens-${c}">
-        ${G.tokens[c].map((t,i) => `
-          <div class="mini-token ${c} ${t.pos===-1?'home':''} ${t.pos===56?'finished':''}"
-               style="background:var(--${c})">${i+1}</div>
-        `).join('')}
-      </div>
-      ${G.rankOrder.includes(c) ? `<div style="font-size:10px;color:gold;margin-top:6px">
-        #${G.rankOrder.indexOf(c)+1} Finished</div>` : ''}
-    </div>
-  `).join('');
-}
-
-function renderTokens() {
-  // Clear old tokens
-  document.querySelectorAll('.token').forEach(t => t.remove());
-
-  G.players.forEach(color => {
-    const pathData = G.paths[color];
-    G.tokens[color].forEach((token, ti) => {
-      const el = document.createElement('div');
-      el.className = `token ${color}`;
-      el.dataset.color = color;
-      el.dataset.ti = ti;
-      el.textContent = ti + 1;
-      el.onclick = () => selectToken(color, ti);
-
-      let cell;
-      if (token.pos === -1) {
-        // Home base
-        const [hr, hc] = pathData.homeBase[ti];
-        cell = document.getElementById(`cell-${hr}-${hc}`);
-      } else if (token.pos === 56) {
-        // Finished — center
-        cell = document.getElementById('cell-7-7');
-      } else {
-        // On path
-        const [pr, pc] = pathData.path[token.pathIdx];
-        cell = document.getElementById(`cell-${pr}-${pc}`);
-      }
-
-      if (cell) {
-        // Stack tokens on same cell
-        const existing = cell.querySelectorAll('.token');
-        const offset = existing.length * 6;
-        el.style.left = `${10 + offset}%`;
-        el.style.top  = `${10 + offset}%`;
-        cell.appendChild(el);
-      }
-    });
-  });
-}
-
-function updateStatus(msg) {
-  const cur = G.players[G.currentPlayer];
-  const name = COLOR_NAMES[cur];
-  const isAI = G.playerTypes[cur] === 'ai';
-  document.getElementById('status-text').textContent =
-    msg || (G.phase === 'roll'
-      ? `${name}${isAI?' (AI)':''}\nRoll the dice`
-      : `${name}\nPick a token`);
-
-  // Dice state
-  const dice = document.getElementById('dice');
-  dice.classList.toggle('disabled', G.phase === 'move' && !isAI);
-
-  // Skip btn
-  const skip = document.getElementById('skip-btn');
-  skip.classList.toggle('visible', G.phase === 'move' && !isAI);
-
-  // Highlight current player card
-  document.querySelectorAll('.player-card').forEach(c => c.classList.remove('active'));
-  const activeCard = document.getElementById(`card-${cur}`);
-  if (activeCard) activeCard.classList.add('active');
-}
-
-// ─── DICE ────────────────────────────────────────────────────────────────────
-function rollDice() {
-  if (G.phase !== 'roll') return;
-  const cur = G.players[G.currentPlayer];
-  if (G.playerTypes[cur] === 'ai') return;
-  doRoll();
-}
-
-function doRoll() {
-  const dice = document.getElementById('dice');
-  dice.classList.add('rolling');
-  setTimeout(() => {
-    dice.classList.remove('rolling');
-    G.diceValue = Math.ceil(Math.random() * 6);
-    dice.textContent = DICE_FACES[G.diceValue - 1];
-    afterRoll();
-  }, 400);
-}
-
-function afterRoll() {
-  const cur = G.players[G.currentPlayer];
-  const tokens = G.tokens[cur];
-  const movable = getMovableTokens(cur, G.diceValue);
-
-  if (movable.length === 0) {
-    updateStatus(`${COLOR_NAMES[cur]}: No moves. Skipping.`);
-    setTimeout(nextTurn, 1000);
+function styleCenter(el,r,c){
+  el.style.background='#fff';el.style.overflow='hidden';
+  if(r===7&&c===7){
+    el.innerHTML=`<svg width="100%" height="100%" viewBox="0 0 60 60" style="position:absolute;inset:0"><polygon points="30,30 0,0 60,0" fill="#e53935"/><polygon points="30,30 60,0 60,60" fill="#43a047"/><polygon points="30,30 60,60 0,60" fill="#1e88e5"/><polygon points="30,30 0,60 0,0" fill="#fdd835"/><circle cx="30" cy="30" r="12" fill="white"/><text x="30" y="34" text-anchor="middle" font-size="10" font-weight="800" fill="#666" font-family="sans-serif">★</text></svg>`;
     return;
   }
-
-  if (G.playerTypes[cur] === 'ai') {
-    G.phase = 'move';
-    setTimeout(() => aiMove(cur, movable), 600);
-    return;
+  const maps={'6-6':'','6-7':'#e53935','6-8':'','7-6':'#fdd835','7-8':'#43a047','8-6':'','8-7':'#1e88e5','8-8':''};
+  const k=`${r}-${c}`,clr=maps[k];
+  if(clr){
+    // Triangle pointing inward
+    const dirs={'6-7':'polygon(0 0,100% 0,50% 100%)','7-8':'polygon(100% 0,100% 100%,0 50%)','8-7':'polygon(0 100%,100% 100%,50% 0)','7-6':'polygon(0 0,0 100%,100% 50%)'};
+    el.innerHTML=`<div style="position:absolute;inset:0;background:${clr};clip-path:${dirs[k]||'none'}"></div>`;
   }
-
-  G.phase = 'move';
-  // Highlight selectable tokens
-  movable.forEach(ti => {
-    document.querySelectorAll(`.token[data-color="${cur}"][data-ti="${ti}"]`)
-      .forEach(el => el.classList.add('selectable'));
-  });
-  updateStatus(`${COLOR_NAMES[cur]}\nChoose a token (rolled ${G.diceValue})`);
 }
 
-function getMovableTokens(color, dice) {
-  return G.tokens[color].reduce((acc, t, i) => {
-    if (t.pos === 56) return acc; // already finished
-    if (t.pos === -1 && dice !== 6) return acc; // need 6 to enter
-    if (t.pos !== -1) {
-      const newIdx = t.pathIdx + dice;
-      if (newIdx > 57) return acc; // can't overshoot finish
+function drawHomeBoxes(){
+  const bw=document.getElementById('board');
+  const sz=bw.offsetWidth/15;
+  const defs=[{c:'red',r1:1,c1:1},{c:'green',r1:1,c1:9},{c:'blue',r1:9,c1:9},{c:'yellow',r1:9,c1:1}];
+  const wrap=document.getElementById('bwrap');
+  defs.forEach(({c,r1,c1})=>{
+    const div=document.createElement('div');
+    div.className='hbox';div.id=`hb-${c}`;
+    const pad=sz*.12,gap=sz*.08;
+    div.style.cssText=`position:absolute;left:${c1*sz+sz*.08}px;top:${r1*sz+sz*.08}px;width:${4*sz-sz*.16}px;height:${4*sz-sz*.16}px;background:white;border-radius:${sz*.28}px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;padding:${pad}px;gap:${gap}px;pointer-events:none;z-index:2;`;
+    for(let i=0;i<4;i++){
+      const sl=document.createElement('div');
+      sl.id=`sl-${c}-${i}`;
+      sl.style.cssText=`border-radius:50%;background:${CHEX[c]}22;border:2px solid ${CHEX[c]}55;display:flex;align-items:center;justify-content:center;position:relative;`;
+      div.appendChild(sl);
     }
-    acc.push(i);
-    return acc;
-  }, []);
-}
-
-// ─── TOKEN SELECTION ─────────────────────────────────────────────────────────
-function selectToken(color, ti) {
-  if (G.phase !== 'move') return;
-  const cur = G.players[G.currentPlayer];
-  if (color !== cur) return;
-  if (G.playerTypes[cur] === 'ai') return;
-
-  const movable = getMovableTokens(cur, G.diceValue);
-  if (!movable.includes(ti)) return;
-
-  moveToken(color, ti, G.diceValue);
-}
-
-function moveToken(color, ti, dice) {
-  const token = G.tokens[color][ti];
-  const pathData = G.paths[color];
-
-  // Clear highlights
-  document.querySelectorAll('.token.selectable').forEach(el => el.classList.remove('selectable'));
-
-  if (token.pos === -1) {
-    // Enter board
-    token.pos = 0;
-    token.pathIdx = 0;
-  } else {
-    token.pathIdx += dice;
-    token.pos = token.pathIdx;
-  }
-
-  // Check finish (path length is 52, home column adds 6 more = 58 total but we use 57 as finish)
-  if (token.pathIdx >= 57) {
-    token.pos = 56;
-    token.pathIdx = 57;
-    showToast(`${COLOR_NAMES[color]} token ${ti+1} finished! 🎉`);
-    checkWinner(color);
-  } else {
-    // Check capture
-    checkCapture(color, ti);
-  }
-
-  // Extra turn on 6
-  const extraTurn = dice === 6;
-
-  renderTokens();
-  renderSidebar();
-
-  if (extraTurn && token.pos !== 56) {
-    G.phase = 'roll';
-    updateStatus(`${COLOR_NAMES[color]} rolled 6 — roll again!`);
-    if (G.playerTypes[color] === 'ai') setTimeout(aiTurn, 800);
-  } else {
-    nextTurn();
-  }
-}
-
-function checkCapture(attackerColor, attackerTi) {
-  const attacker = G.tokens[attackerColor][attackerTi];
-  if (attacker.pos === -1 || attacker.pos === 56) return;
-
-  const [ar, ac] = G.paths[attackerColor].path[attacker.pathIdx];
-
-  // Safe squares: start positions
-  const safePositions = new Set(['6-1','1-8','8-13','13-6','0-7','7-14','14-7','7-0']);
-  const cellKey = `${ar}-${ac}`;
-  if (safePositions.has(cellKey)) return;
-
-  G.players.forEach(color => {
-    if (color === attackerColor) return;
-    G.tokens[color].forEach((t, ti) => {
-      if (t.pos === -1 || t.pos === 56) return;
-      const [tr, tc] = G.paths[color].path[t.pathIdx];
-      if (tr === ar && tc === ac) {
-        // Capture!
-        t.pos = -1;
-        t.pathIdx = -1;
-        showToast(`${COLOR_NAMES[attackerColor]} captured ${COLOR_NAMES[color]}! 💥`);
-      }
-    });
+    wrap.appendChild(div);
   });
 }
 
-function checkWinner(color) {
-  const allDone = G.tokens[color].every(t => t.pos === 56);
-  if (allDone && !G.finished.has(color)) {
-    G.finished.add(color);
-    G.rankOrder.push(color);
-
-    if (G.finished.size === 1) {
-      // Show winner screen
-      setTimeout(() => {
-        document.getElementById('win-title').textContent = `${COLOR_NAMES[color]} Wins!`;
-        document.getElementById('win-sub').textContent =
-          G.playerTypes[color] === 'ai' ? 'The AI claimed victory.' : 'Well played!';
-        document.getElementById('win-screen').style.display = 'flex';
-      }, 600);
-    }
-  }
+function reposBoxes(){
+  const bw=document.getElementById('board');if(!bw)return;
+  const sz=bw.offsetWidth/15;
+  [{c:'red',r1:1,c1:1},{c:'green',r1:1,c1:9},{c:'blue',r1:9,c1:9},{c:'yellow',r1:9,c1:1}].forEach(({c,r1,c1})=>{
+    const div=document.getElementById(`hb-${c}`);if(!div)return;
+    const pad=sz*.12;
+    div.style.left=`${c1*sz+sz*.08}px`;div.style.top=`${r1*sz+sz*.08}px`;
+    div.style.width=`${4*sz-sz*.16}px`;div.style.height=`${4*sz-sz*.16}px`;
+    div.style.borderRadius=`${sz*.28}px`;div.style.padding=`${pad}px`;div.style.gap=`${sz*.08}px`;
+  });
 }
+window.addEventListener('resize',()=>{reposBoxes();renderTokens();});
 
-// ─── TURN MANAGEMENT ─────────────────────────────────────────────────────────
-function nextTurn() {
-  G.phase = 'roll';
-  let next = (G.currentPlayer + 1) % G.players.length;
-  // Skip finished players
-  let tries = 0;
-  while (G.finished.has(G.players[next]) && tries < G.players.length) {
-    next = (next + 1) % G.players.length;
-    tries++;
-  }
-  G.currentPlayer = next;
-  updateStatus();
-  renderSidebar();
-  document.getElementById('skip-btn').classList.remove('visible');
-  if (isCurrentAI()) setTimeout(aiTurn, 700);
-}
-
-function skipTurn() {
-  document.querySelectorAll('.token.selectable').forEach(el => el.classList.remove('selectable'));
-  nextTurn();
-}
-
-function isCurrentAI() {
-  return G.playerTypes[G.players[G.currentPlayer]] === 'ai';
-}
-
-// ─── AI ───────────────────────────────────────────────────────────────────────
-function aiTurn() {
-  if (G.phase !== 'roll') return;
-  const cur = G.players[G.currentPlayer];
-  if (G.playerTypes[cur] !== 'ai') return;
-
-  const dice = document.getElementById('dice');
-  dice.classList.add('rolling');
-  setTimeout(() => {
-    dice.classList.remove('rolling');
-    G.diceValue = Math.ceil(Math.random() * 6);
-    dice.textContent = DICE_FACES[G.diceValue - 1];
-    afterRoll();
-  }, 500);
-}
-
-function aiMove(color, movable) {
-  // Simple AI: prefer capturing, then furthest token, then entering new token
-  let chosen = movable[0];
-
-  // Priority 1: can capture
-  for (const ti of movable) {
-    const token = G.tokens[color][ti];
-    if (token.pos === -1) continue;
-    const newIdx = token.pathIdx + G.diceValue;
-    if (newIdx < G.paths[color].path.length) {
-      const [nr, nc] = G.paths[color].path[newIdx];
-      for (const oc of G.players) {
-        if (oc === color) continue;
-        for (const ot of G.tokens[oc]) {
-          if (ot.pos === -1 || ot.pos === 56) continue;
-          const [tr, tc] = G.paths[oc].path[ot.pathIdx];
-          if (tr === nr && tc === nc) { chosen = ti; goto_move(); return; }
+// TOKENS
+function renderTokens(){
+  document.querySelectorAll('.tok').forEach(t=>t.remove());
+  if(!G.players)return;
+  G.players.forEach(color=>{
+    G.tokens[color].forEach((tok,ti)=>{
+      const el=document.createElement('div');
+      el.className=`tok ${color}`;el.dataset.c=color;el.dataset.i=ti;
+      el.textContent=ti+1;el.onclick=()=>selectToken(color,ti);
+      if(tok.pi===-1){
+        const sl=document.getElementById(`sl-${color}-${ti}`);
+        if(sl){el.style.cssText='position:relative;width:70%;height:70%;left:15%;top:15%';sl.appendChild(el);}
+      }else if(tok.pi>=57){
+        const cell=document.getElementById('B7_7');
+        if(cell){
+          const n=cell.querySelectorAll('.tok').length;
+          const o=[[8,8],[52,8],[8,52],[52,52]];const[ox,oy]=o[Math.min(n,3)];
+          el.style.cssText=`width:36%;height:36%;left:${ox}%;top:${oy}%`;cell.appendChild(el);
+        }
+      }else{
+        const[pr,pc]=G.paths[color][tok.pi];
+        const cell=document.getElementById(`B${pr}_${pc}`);
+        if(cell){
+          const n=cell.querySelectorAll('.tok').length;
+          const o=[[10,10],[50,10],[10,50],[50,50]];const[ox,oy]=o[Math.min(n,3)];
+          const s=n>=2?'42%':'54%';
+          el.style.cssText=`left:${ox}%;top:${oy}%;width:${s};height:${s}`;cell.appendChild(el);
         }
       }
-    }
-  }
-
-  // Priority 2: token closest to finish
-  let maxIdx = -1;
-  for (const ti of movable) {
-    const t = G.tokens[color][ti];
-    if (t.pos !== -1 && t.pathIdx > maxIdx) {
-      maxIdx = t.pathIdx;
-      chosen = ti;
-    }
-  }
-
-  // Priority 3: enter new token if 6
-  if (G.diceValue === 6) {
-    const homeToken = movable.find(ti => G.tokens[color][ti].pos === -1);
-    if (homeToken !== undefined) chosen = homeToken;
-  }
-
-  function goto_move() { moveToken(color, chosen, G.diceValue); }
-  goto_move();
+    });
+  });
 }
 
-// ─── TOAST ───────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2000);
+function animTok(color,ti,cls){
+  document.querySelectorAll(`.tok[data-c="${color}"][data-i="${ti}"]`).forEach(el=>{
+    el.classList.remove('am','ae','ac2','aw');void el.offsetWidth;el.classList.add(cls);
+    el.addEventListener('animationend',()=>el.classList.remove(cls),{once:true});
+  });
 }
 
-// ─── INIT ─────────────────────────────────────────────────────────────────────
-renderPlayerConfig();
-setPlayers(4);
+// CARDS
+function renderCards(){
+  document.getElementById('pcards').innerHTML=G.players.map(c=>`
+    <div class="pcard" id="pc-${c}" style="--aclr:${CHEX[c]}">
+      <div class="pch">
+        <div class="pcdot" style="background:${CHEX[c]};box-shadow:0 0 6px ${CHEX[c]}88"></div>
+        <div class="pcnm">${G.names[c]}</div>
+        <div class="pcai">${G.types[c]==='ai'?'AI':'YOU'}</div>
+      </div>
+      <div class="pctoks" id="pt-${c}"></div>
+    </div>`).join('');
+  updateCards();
+}
+function updateCards(){
+  const cur=G.players[G.ci];
+  G.players.forEach(c=>{
+    const card=document.getElementById(`pc-${c}`);if(!card)return;
+    card.classList.toggle('ac',c===cur&&!G.finished.has(c));
+    card.classList.toggle('wn',G.finished.has(c));
+    const ri=G.rank.indexOf(c);
+    document.getElementById(`pt-${c}`).innerHTML=G.tokens[c].map((t,i)=>`<div class="ptk ${t.pi===-1?'hm':''} ${t.pi>=57?'dn':''}" style="background:${CHEX[c]}">${ri>=0&&t.pi>=57?'⭐':i+1}</div>`).join('');
+  });
+}
+
+// DICE
+function drawDice(n){
+  const dots=document.getElementById('dice').querySelectorAll('.dd');
+  const act=DDOTS[n]||[];
+  dots.forEach((d,idx)=>{const r=Math.floor(idx/3),c=idx%3;d.classList.toggle('off',!act.some(([dr,dc])=>dr===r&&dc===c));});
+}
+function showDnum(n){
+  const el=document.getElementById('dnum');
+  el.textContent=n;el.classList.remove('vis','pop');void el.offsetWidth;el.classList.add('vis','pop');
+}
+function humanRoll(){if(G.phase!=='roll'||isAI())return;doRoll();}
+function doRoll(cb){
+  const dice=document.getElementById('dice');dice.classList.add('roll');
+  let f=0;const iv=setInterval(()=>{drawDice(Math.ceil(Math.random()*6));if(++f>9)clearInterval(iv);},52);
+  setTimeout(()=>{clearInterval(iv);dice.classList.remove('roll');G.dv=Math.ceil(Math.random()*6);drawDice(G.dv);showDnum(G.dv);if(cb)cb();else afterRoll();},600);
+}
+
+// LOGIC
+function cur(){return G.players[G.ci];}
+function isAI(){return G.types[cur()]==='ai';}
+function movable(color,d){return G.tokens[color].reduce((a,t,i)=>{if(t.pi>=57)return a;if(t.pi===-1&&d!==6)return a;if(t.pi!==-1&&t.pi+d>57)return a;a.push(i);return a;},[]);}
+
+function afterRoll(){
+  const c=cur(),mv=movable(c,G.dv);
+  if(!mv.length){updateStatus(`${G.names[c]} — No moves!`);setTimeout(nextTurn,1100);return;}
+  G.phase='move';updateStatus(`${G.names[c]} — Tap a token`);
+  if(isAI()){setTimeout(()=>aiMove(c,mv),G.sp==='fast'?280:760);return;}
+  mv.forEach(ti=>document.querySelectorAll(`.tok[data-c="${c}"][data-i="${ti}"]`).forEach(el=>el.classList.add('sel')));
+  document.getElementById('skipbtn').classList.add('vis');
+}
+
+function selectToken(color,ti){
+  if(G.phase!=='move'||color!==cur()||isAI())return;
+  if(!movable(color,G.dv).includes(ti))return;
+  clearSel();doMove(color,ti,G.dv);
+}
+function clearSel(){document.querySelectorAll('.tok.sel').forEach(el=>el.classList.remove('sel'));document.getElementById('skipbtn').classList.remove('vis');}
+
+function doMove(color,ti,d){
+  const tok=G.tokens[color][ti];const wasHome=tok.pi===-1;
+  tok.pi=wasHome?0:tok.pi+d;
+  const fin=tok.pi>=57;
+  const[dr,dc]=fin?[7,7]:G.paths[color][tok.pi];
+  const dcell=document.getElementById(`B${dr}_${dc}`);
+  if(dcell){const rip=document.createElement('div');rip.className='rip';dcell.appendChild(rip);rip.addEventListener('animationend',()=>rip.remove());}
+  renderTokens();
+  requestAnimationFrame(()=>animTok(color,ti,wasHome?'ae':fin?'aw':'am'));
+  if(fin){showToast(`${G.names[color]} token ${ti+1} finished! 🎉`);checkWin(color);}
+  else checkCapture(color,ti);
+  updateCards();G.phase='roll';
+  const extra=d===6&&!fin;
+  if(extra){updateStatus(`${G.names[color]} rolled 6 — Roll again!`);if(isAI())setTimeout(aiTurn,G.sp==='fast'?400:950);}
+  else setTimeout(nextTurn,fin?900:180);
+}
+
+function checkCapture(ac,ati){
+  const atk=G.tokens[ac][ati];if(atk.pi<0||atk.pi>=57)return;
+  const[ar,aac]=G.paths[ac][atk.pi];if(SAFE.has(`${ar}-${aac}`))return;
+  G.players.forEach(c=>{
+    if(c===ac)return;
+    G.tokens[c].forEach((t,ti)=>{
+      if(t.pi<0||t.pi>=57)return;
+      const[tr,tc]=G.paths[c][t.pi];
+      if(tr===ar&&tc===aac){animTok(c,ti,'ac2');setTimeout(()=>{t.pi=-1;renderTokens();updateCards();},260);showToast(`${G.names[ac]} captured ${G.names[c]}! 💥`);}
+    });
+  });
+}
+
+function checkWin(color){
+  if(!G.tokens[color].every(t=>t.pi>=57)||G.finished.has(color))return;
+  G.finished.add(color);G.rank.push(color);updateCards();
+  if(G.rank.length===1){
+    setTimeout(()=>{
+      launchConfetti();
+      document.getElementById('wh').textContent=`${G.names[color]} Wins! 🎊`;
+      document.getElementById('ws').textContent=G.types[color]==='ai'?'The AI claims victory!':'Well played!';
+      document.getElementById('wo').classList.add('on');
+    },850);
+  }
+}
+
+function nextTurn(){
+  G.phase='roll';let n=(G.ci+1)%G.players.length,t=0;
+  while(G.finished.has(G.players[n])&&t++<G.players.length)n=(n+1)%G.players.length;
+  G.ci=n;updateCards();updateStatus();
+  if(isAI())setTimeout(aiTurn,G.sp==='fast'?280:700);
+}
+function skipTurn(){clearSel();nextTurn();}
+function updateStatus(msg){
+  const c=cur(),el=document.getElementById('sbar');
+  if(msg){el.textContent=msg;return;}
+  el.textContent=`${G.names[c]}${G.types[c]==='ai'?' (AI)':''} — ${G.phase==='roll'?'Roll the dice!':'Pick a token to move'}`;
+}
+
+// AI
+function aiTurn(){if(G.phase!=='roll'||!isAI())return;doRoll(()=>afterRoll());}
+function aiMove(color,mv){
+  let ch=mv[0];
+  for(const ti of mv){const t=G.tokens[color][ti];if(t.pi<0)continue;const ni=t.pi+G.dv;if(ni>=G.paths[color].length)continue;const[nr,nc]=G.paths[color][ni];for(const oc of G.players){if(oc===color)continue;for(const ot of G.tokens[oc]){if(ot.pi<0||ot.pi>=57)continue;const[tr,tc]=G.paths[oc][ot.pi];if(tr===nr&&tc===nc){ch=ti;doMove(color,ch,G.dv);return;}}}}
+  for(const ti of mv){const t=G.tokens[color][ti];if(t.pi>=0&&t.pi+G.dv>=57){ch=ti;break;}}
+  let mx=-2;for(const ti of mv){const t=G.tokens[color][ti];if(t.pi>mx){mx=t.pi;ch=ti;}}
+  if(G.dv===6){const h=mv.find(ti=>G.tokens[color][ti].pi===-1);if(h!==undefined)ch=h;}
+  doMove(color,ch,G.dv);
+}
+
+// EFFECTS
+function launchConfetti(){
+  const cs=['#e53935','#43a047','#1e88e5','#fdd835','#fff','#ff9f43','#a29bfe','#fd79a8','#00cec9'];
+  for(let i=0;i<100;i++)setTimeout(()=>{const p=document.createElement('div');p.className='cf';const sz=6+Math.random()*9;p.style.cssText=`left:${Math.random()*100}vw;top:-10px;width:${sz}px;height:${sz}px;background:${cs[Math.floor(Math.random()*cs.length)]};border-radius:${Math.random()>.5?'50%':'3px'};animation-duration:${1.4+Math.random()*2.2}s;`;document.body.appendChild(p);p.addEventListener('animationend',()=>p.remove());},i*16);
+}
+let tT;
+function showToast(msg){clearTimeout(tT);const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');tT=setTimeout(()=>t.classList.remove('on'),2500);}
+
+function toggleTheme(){const d=document.documentElement.dataset.theme==='dark';document.documentElement.dataset.theme=d?'light':'dark';document.getElementById('thbtn').textContent=d?'☀️':'🌙';}
+
+renderRows();
 </script>
 </body>
 </html>
